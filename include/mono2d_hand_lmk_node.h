@@ -27,10 +27,6 @@
 #include "hbm_img_msgs/msg/hbm_msg1080_p.hpp"
 // #endif
 
-#ifndef PLATFORM_X86
-#include "hobot_mot/hobot_mot.h"
-#endif
-
 #include "ai_msgs/msg/capture_targets.hpp"
 #include "ai_msgs/msg/perception_targets.hpp"
 #include "dnn_node/dnn_node.h"
@@ -93,9 +89,7 @@ private:
   std::vector<cv::Rect> palm_targets; // for save palm detection results, after extended to hand
   std::vector<cv::Rect> track_hand_rects; // for save last frame roi range of hand
   ModelTaskType model_task_type_ = ModelTaskType::ModelRoiInferType; // set to roi model
-
-  std::atomic<double> width_scale_{ 1.0 };
-  std::atomic<double> height_scale_{ 1.0 };
+  std::string image_file_ = "config.example.jpg"; // local test image file name
 
   int model_input_width_ = 224;
   int model_input_height_ = 224;

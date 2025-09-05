@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>hand_landmarks_mediapipe</name>
-  <version>2.4.2</version>
+  <version>1.0.0</version>
   <description>TogetheROS mono2d hand landmarks</description>
   <maintainer email="kao.zhu@d-robotics.cc">zhukao</maintainer>
   <license>Apache License 2.0</license>
@@ -18,7 +18,6 @@
   <depend>sensor_msgs</depend>
   <depend>hbm_img_msgs</depend>
   <depend>ai_msgs</depend>
-  <depend>hobot_mot</depend>
   <depend>rclcpp_components</depend>
   <depend>palm_detection_mediapipe</depend>
 

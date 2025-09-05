@@ -25,14 +25,11 @@
 #include "include/post_process/gesture.h"
 #include "utils.h"
 
-int Deduplication(std::vector<hobot::dnn_node::HandLmkResult> lmk_result,
-                  std::vector<hobot::dnn_node::HandLmkResult>& filter_lmk_result)
+int Deduplication(std::vector<HandLmkResult> lmk_result, std::vector<HandLmkResult>& filter_lmk_result)
 {
   // sort from score high to low
   std::sort(lmk_result.begin(), lmk_result.end(),
-            [](const hobot::dnn_node::HandLmkResult& a, const hobot::dnn_node::HandLmkResult& b) {
-              return a.scores > b.scores;
-            });
+            [](const HandLmkResult& a, const HandLmkResult& b) { return a.scores > b.scores; });
   std::vector<bool> isDedup(lmk_result.size(), false);
   std::vector<cv::Rect> bbox_iou;
   for (auto& lmk : lmk_result)
@@ -97,7 +94,7 @@ void NodeOutputManage::Feed(uint64_t ts_ms)
 std::vector<std::shared_ptr<DnnNodeOutput>> NodeOutputManage::Feed(const std::shared_ptr<DnnNodeOutput>& in_node_output)
 {
   std::vector<std::shared_ptr<DnnNodeOutput>> node_outputs{};
-  auto hand_node_output = std::dynamic_pointer_cast<hobot::dnn_node::HandNodeOutput>(in_node_output);
+  auto hand_node_output = std::dynamic_pointer_cast<HandNodeOutput>(in_node_output);
   if (!hand_node_output || !hand_node_output->image_msg_header)
   {
     return node_outputs;
@@ -210,6 +207,7 @@ Mono2dHandLmkNode::Mono2dHandLmkNode(const NodeOptions& options) : DnnNode("mono
   this->declare_parameter<int>("image_gap", image_gap_);
   this->declare_parameter<int>("dump_render_img", dump_render_img_);
   this->declare_parameter<std::string>("palm_topic_name", palm_topic_name_);
+  this->declare_parameter<std::string>("image_file", image_file_);
   this->declare_parameter<float>("min_score", min_score_);
 
   this->get_parameter<int>("is_sync_mode", is_sync_mode_);
@@ -221,6 +219,7 @@ Mono2dHandLmkNode::Mono2dHandLmkNode(const NodeOptions& options) : DnnNode("mono
   this->get_parameter<int>("image_gap", image_gap_);
   this->get_parameter<int>("dump_render_img", dump_render_img_);
   this->get_parameter<std::string>("palm_topic_name", palm_topic_name_);
+  this->get_parameter<std::string>("image_file", image_file_);
   this->get_parameter<float>("min_score", min_score_);
   {
     std::stringstream ss;
@@ -261,37 +260,6 @@ Mono2dHandLmkNode::Mono2dHandLmkNode(const NodeOptions& options) : DnnNode("mono
       RCLCPP_WARN(rclcpp::get_logger("mono2d_hand_lmk"), "Get model name: %s from load model.", model_name_.c_str());
     }
   }
-
-#ifdef BPU_LIBDNN
-  parser_para_ = std::make_shared<FasterRcnnKpsParserPara>();
-  hbDNNTensorProperties tensor_properties;
-  model_manage->GetOutputTensorProperties(tensor_properties, kps_output_index_);
-  parser_para_->aligned_kps_dim.clear();
-  parser_para_->kps_shifts_.clear();
-  for (int i = 0; i < tensor_properties.alignedShape.numDimensions; i++)
-  {
-    parser_para_->aligned_kps_dim.push_back(tensor_properties.alignedShape.dimensionSize[i]);
-  }
-  for (int i = 0; i < tensor_properties.shift.shiftLen; i++)
-  {
-    parser_para_->kps_shifts_.push_back(static_cast<uint8_t>(tensor_properties.shift.shiftData[i]));
-  }
-  {
-    std::stringstream ss;
-    ss << "aligned_kps_dim:";
-    for (const auto& val : parser_para_->aligned_kps_dim)
-    {
-      ss << " " << val;
-    }
-    ss << "\nkps_shifts: ";
-    for (const auto& val : parser_para_->kps_shifts_)
-    {
-      ss << " " << val;
-    }
-    ss << "\n";
-    RCLCPP_INFO(rclcpp::get_logger("mono2d_hand_lmk"), "%s", ss.str().c_str());
-  }
-#endif
 
   msg_publisher_ = this->create_publisher<ai_msgs::msg::PerceptionTargets>(ai_msg_pub_topic_name_, 10);
 
@@ -371,7 +339,7 @@ int Mono2dHandLmkNode::SetNodePara()
 int Mono2dHandLmkNode::PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs)
 {
   // RCLCPP_INFO(rclcpp::get_logger("mono2d_hand_lmk"), "Pointer: %p, Value: %f", outputs);
-  auto handOutput = std::dynamic_pointer_cast<hobot::dnn_node::HandNodeOutput>(outputs);
+  auto handOutput = std::dynamic_pointer_cast<HandNodeOutput>(outputs);
 
   if (!rclcpp::ok())
   {
@@ -384,8 +352,7 @@ int Mono2dHandLmkNode::PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs
     return -1;
   }
 
-  // std::vector<std::shared_ptr<DnnNodeOutput>> node_outputs{};
-  auto hand_node_output = std::dynamic_pointer_cast<hobot::dnn_node::HandNodeOutput>(outputs);
+  auto hand_node_output = std::dynamic_pointer_cast<HandNodeOutput>(outputs);
   {
     std::stringstream ss;
     ss << "Outputs from";
@@ -394,7 +361,6 @@ int Mono2dHandLmkNode::PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs
        << ", infer time ms: " << handOutput->rt_stat->infer_time_ms;
     RCLCPP_DEBUG(rclcpp::get_logger("mono2d_hand_lmk"), "%s", ss.str().c_str());
   }
-  // std::shared_ptr<hobot::dnn_node::HandLmkResult> hand_lmk_res = nullptr;
 
   // 使用hobot dnn内置的Parse解析方法，解析算法输出的DNNTensor类型数据
   int ret = -1;
@@ -424,7 +390,7 @@ int Mono2dHandLmkNode::PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs
   Landmarks lmk_result;
   std::vector<ai_msgs::msg::Point> hand_kps;
 
-  std::vector<hobot::dnn_node::HandLmkResult> filter_lmk_result;
+  std::vector<HandLmkResult> filter_lmk_result;
   Deduplication(hand_node_output->lmk_result, filter_lmk_result);
   track_hand_rects.clear();
 
@@ -576,23 +542,19 @@ int Mono2dHandLmkNode::PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs
 }
 int Mono2dHandLmkNode::FeedFromLocal()
 {
-  std::string image_file_ = "1.jpg";
   if (access(image_file_.c_str(), R_OK) == -1)
   {
     RCLCPP_ERROR(rclcpp::get_logger("mono2d_hand_lmk"), "Image: %s not exist!", image_file_.c_str());
     return -1;
   }
-  struct timespec time_now = { 0, 0 };
-  clock_gettime(CLOCK_REALTIME, &time_now);
-  // dnn_output->perf_preprocess.stamp_start.sec = time_now.tv_sec;
-  // dnn_output->perf_preprocess.stamp_start.nanosec = time_now.tv_nsec;
+  cv::Mat image = cv::imread(image_file_);
 
   // 1. 将图片处理成模型输入数据类型DNNInput
   // 使用图片生成pym，NV12PyramidInput为DNNInput的子类
   std::shared_ptr<hobot::dnn_node::NV12PyramidInput> pyramid = nullptr;
   // bgr img，支持将图片resize到模型输入size
-  int img_h = 800;
-  int img_w = 600;
+  int img_h = image.rows;
+  int img_w = image.cols;
   int resized_h;
   int resized_w;
   pyramid = hobot::dnn_node::ImageProc::GetNV12PyramidFromBGR(image_file_, img_h, img_w, resized_h, resized_w,
@@ -605,7 +567,8 @@ int Mono2dHandLmkNode::FeedFromLocal()
   // 2. 输入NV12 Input
   // inputs将会作为模型的输入通过InferTask接口传入
   auto inputs = std::vector<std::shared_ptr<DNNInput>>{ pyramid };
-  auto dnn_output = std::make_shared<hobot::dnn_node::HandNodeOutput>();
+  auto dnn_output = std::make_shared<HandNodeOutput>();
+  struct timespec time_now = { 0, 0 };
   clock_gettime(CLOCK_REALTIME, &time_now);
   dnn_output->msg_header = std::make_shared<std_msgs::msg::Header>();
   dnn_output->msg_header->set__frame_id("feedback");
@@ -642,7 +605,7 @@ void Mono2dHandLmkNode::RosImgProcess(const sensor_msgs::msg::Image::ConstShared
   RCLCPP_INFO(rclcpp::get_logger("mono2d_hand_lmk"), "%s", ss.str().c_str());
 
   auto tp_start = std::chrono::system_clock::now();
-  auto dnn_output = std::make_shared<hobot::dnn_node::HandNodeOutput>();
+  auto dnn_output = std::make_shared<HandNodeOutput>();
   auto rois = std::make_shared<std::vector<hbDNNRoi>>();  // input roi to model
 
   auto palms = std::move(palm_targets);
@@ -655,7 +618,7 @@ void Mono2dHandLmkNode::RosImgProcess(const sensor_msgs::msg::Image::ConstShared
   if (result_size == 0)
   {
     auto roi_dst = std::make_shared<hbDNNRoi>();
-    auto roi = hbDNNRoi(2, 2, img_msg->width, img_msg->height);  // roi range must begin from 2 at least
+    auto roi = hbDNNRoi(0, 0, img_msg->width, img_msg->height);
 
     auto ret = NormalizeRoi(&roi, roi_dst.get(), 1.0, img_msg->width, img_msg->height);  // process roi and check valid
     RCLCPP_DEBUG(rclcpp::get_logger("mono2d_hand_lmk"), "ROI Range: x1:%d  y1:%d  x2:%d  y2:%d  ret:%d", roi_dst->left,
@@ -797,7 +760,7 @@ void SaveNV12FromPyramid(const NV12PyramidInput& input, const std::string& filen
   }
 
   file.close();
-  std::cout << "NV12 image saved to: " << filename << std::endl;
+  RCLCPP_WARN(rclcpp::get_logger("mono2d_hand_lmk"), "NV12 image saved to: %s", filename.c_str());
 }
 
 #ifdef SHARED_MEM_ENABLED
@@ -823,8 +786,6 @@ void Mono2dHandLmkNode::SharedMemImgProcess(const hbm_img_msgs::msg::HbmMsg1080P
      << ", stamp: " << img_msg->time_stamp.sec << "_" << img_msg->time_stamp.nanosec
      << ", data size: " << img_msg->data_size;
   RCLCPP_DEBUG(rclcpp::get_logger("mono2d_hand_lmk"), "%s", ss.str().c_str());
-  width_scale_ = static_cast<double>(model_input_width_) / img_msg->width;
-  height_scale_ = static_cast<double>(model_input_height_) / img_msg->height;
   rclcpp::Time msg_ts = img_msg->time_stamp;
   rclcpp::Duration dura = this->now() - msg_ts;
   float duration_ms = dura.nanoseconds() / 1000.0 / 1000.0;
@@ -832,7 +793,7 @@ void Mono2dHandLmkNode::SharedMemImgProcess(const hbm_img_msgs::msg::HbmMsg1080P
                        duration_ms);
 
   auto tp_start = std::chrono::system_clock::now();
-  auto dnn_output = std::make_shared<hobot::dnn_node::HandNodeOutput>();
+  auto dnn_output = std::make_shared<HandNodeOutput>();
   auto rois = std::make_shared<std::vector<hbDNNRoi>>();  // input roi to model
 
   auto palms = std::move(palm_targets);
@@ -845,7 +806,7 @@ void Mono2dHandLmkNode::SharedMemImgProcess(const hbm_img_msgs::msg::HbmMsg1080P
   if (result_size == 0)
   {
     auto roi_dst = std::make_shared<hbDNNRoi>();
-    auto roi = hbDNNRoi(2, 2, img_msg->width, img_msg->height);  // roi range must begin from 2 at least
+    auto roi = hbDNNRoi(0, 0, img_msg->width, img_msg->height);
 
     auto ret = NormalizeRoi(&roi, roi_dst.get(), 1.0, img_msg->width, img_msg->height);  // process roi and check valid
     RCLCPP_DEBUG(rclcpp::get_logger("mono2d_hand_lmk"), "ROI Range: x1:%d  y1:%d  x2:%d  y2:%d  ret:%d", roi_dst->left,

@@ -58,35 +58,13 @@ include_directories(include
   ${PROJECT_SOURCE_DIR}
 )
 
-if(PLATFORM_X3)
-  message("build platform X3")
-  add_definitions(-DBPU_LIBDNN)
-  set(SYS_ROOT ${CMAKE_SYSROOT})
-  set(PREFIX_PATH x3)
-elseif(PLATFORM_Rdkultra)
-  message("build ${PROJECT_NAME} for platform Rdkultra")
-  add_definitions(-DBPU_LIBDNN)
-  set(SYS_ROOT ${CMAKE_SYSROOT})
-  set(PREFIX_PATH rdkultra)
-elseif(PLATFORM_X5)
-  message("build ${PROJECT_NAME} for platform X5")
-  add_definitions(-DBPU_LIBDNN)
-  set(SYS_ROOT ${CMAKE_SYSROOT})
-  set(PREFIX_PATH x5)
-elseif(PLATFORM_S100)
+if(PLATFORM_S100)
   message("build ${PROJECT_NAME} for platform S100")
   set(SYS_ROOT ${CMAKE_SYSROOT})
   set(PREFIX_PATH s100)
-elseif(PLATFORM_X86)
-  message("build platform X86")
-  message("THIRD_PARTY is " ${THIRD_PARTY})
-  add_definitions(-DPLATFORM_X86)
-  set(PREFIX_PATH x3)
-  set(SYS_ROOT ${THIRD_PARTY})
-  link_directories(${THIRD_PARTY}/usr/lib)
 else()
-  message("invalid platform, build platform X3 default")
-  set(PREFIX_PATH x3)
+  message("invalid platform, build platform s100 default")
+  set(PREFIX_PATH s100)
   set(SYS_ROOT ${CMAKE_SYSROOT})
 endif()
 
@@ -104,9 +82,6 @@ link_directories(
   ${SYS_ROOT}/usr/lib/hbmedia/
 )
 
-if (NOT PLATFORM_X86)
-  find_package(hobot_mot REQUIRED)
-endif()
 
 add_library(${PROJECT_NAME}_component SHARED
   src/main.cpp
@@ -118,12 +93,9 @@ add_library(${PROJECT_NAME}_component SHARED
 
 target_compile_definitions(${PROJECT_NAME}_component
   PRIVATE "COMPOSITION_BUILDING_DLL")
-if (NOT PLATFORM_X86)
   ament_target_dependencies(
     ${PROJECT_NAME}_component
-    hobot_mot
   )
-endif()
 
 ament_target_dependencies(
   ${PROJECT_NAME}_component

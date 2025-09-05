@@ -31,13 +31,14 @@ namespace hobot
 {
 namespace dnn_node
 {
-
+namespace parser_hand_lmk
+{
 class HandLmkResult
 {
 public:
-  Landmarks lmks; // landmarks results
-  float scores; // detection scores
-  float left_right; // left or right hand
+  Landmarks lmks;    // landmarks results
+  float scores;      // detection scores
+  float left_right;  // left or right hand
 
   void Reset()
   {
@@ -65,7 +66,7 @@ struct HandNodeOutput : public DnnNodeOutput
   }
   std::vector<HandLmkResult> lmk_result;
 };
-
+}  // namespace parser_hand_lmk
 }  // namespace dnn_node
 }  // namespace hobot
 

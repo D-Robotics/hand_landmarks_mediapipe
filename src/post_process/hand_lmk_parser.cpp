@@ -58,7 +58,7 @@ int32_t HandLmkParse(const std::vector<std::shared_ptr<DNNTensor>>& output_tenso
                                   (*output_hand_res->valid_rois)[b].top);  // translate to roi
       lmk.emplace_back(point_xy);
     }
-    hobot::dnn_node::HandLmkResult res;
+    HandLmkResult res;
     res.lmks = lmk;
     res.scores = output1[0];
     res.left_right = output2[0];
@@ -72,8 +72,8 @@ int NormalizeRoi(const hbDNNRoi* src, hbDNNRoi* dst, float norm_ratio, int32_t t
 {
   *dst = *src;
   // make sure dst left and top is not negative
-  dst->left = dst->left <= 0 ? 1 : dst->left;
-  dst->top = dst->top <= 0 ? 1 : dst->top;
+  dst->left = dst->left < 0 ? 0 : dst->left;
+  dst->top = dst->top < 0 ? 0 : dst->top;
   float box_w = dst->right - dst->left;
   float box_h = dst->bottom - dst->top;
   float center_x = (dst->left + dst->right) / 2.0f;

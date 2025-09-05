@@ -180,7 +180,7 @@ def generate_launch_description():
             {"ai_msg_pub_topic_name": LaunchConfiguration('hand_lmk_pub_topic')},
             {"palm_topic_name": 'hobot_palm_detection'},
         ],
-        arguments=['--ros-args', '--log-level', 'info']
+        arguments=['--ros-args', '--log-level', 'warn']
     )
 
     shared_mem_node = IncludeLaunchDescription(

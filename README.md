@@ -23,7 +23,7 @@ The example subscribes to image data (`image msg`), publishes customized percept
 
 # Preparation
 
-- RDK has been flashed with Ubuntu 20.04/22.04 system image  
+- RDK has been flashed with Ubuntu 22.04 system image  
 - The camera is properly connected to the RDK S100
 
 # Usage
