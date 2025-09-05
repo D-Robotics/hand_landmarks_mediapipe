@@ -163,16 +163,7 @@ DESTINATION lib/${PROJECT_NAME}/config/
 )
 
 install(FILES
-  ${PROJECT_SOURCE_DIR}/config/iou2_euclid_method_param.json
-  DESTINATION lib/${PROJECT_NAME}/config/
-)
-install(FILES
-  ${PROJECT_SOURCE_DIR}/config/iou2_method_param.json
-  DESTINATION lib/${PROJECT_NAME}/config/
-)
-
-install(FILES
-  ${PROJECT_SOURCE_DIR}/config/1.png
+  ${PROJECT_SOURCE_DIR}/config/example.jpg
   DESTINATION lib/${PROJECT_NAME}/config/
 )
 

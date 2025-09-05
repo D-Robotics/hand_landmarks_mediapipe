@@ -46,6 +46,7 @@ sudo apt install -y tros-humble-hand_landmarks_mediapipe
 source /opt/tros/humble/setup.bash
 
 # Copy the configuration files required to run the example from the tros.b installation path.
+cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
 cp -r /opt/tros/${TROS_DISTRO}/lib/hand_landmarks_mediapipe/config/ .
 
 # Configure MIPI camera
@@ -63,6 +64,7 @@ ros2 launch hand_landmarks_mediapipe hand_landmarks.launch.py
 source /opt/tros/humble/setup.bash
 
 # Copy the configuration files required to run the example from the tros.b installation path.
+cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
 cp -r /opt/tros/${TROS_DISTRO}/lib/hand_landmarks_mediapipe/config/ .
 
 # Configure USB camera
@@ -78,13 +80,14 @@ Only supported on tros humble version.
 
 ```shell
 # Copy the configuration files required to run the example from the tros.b installation path.
+cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
 cp -r /opt/tros/${TROS_DISTRO}/lib/hand_landmarks_mediapipe/config/ .
 
 # Configure local playback image
 export CAM_TYPE=fb
 
 # Start the launch file
-ros2 launch hand_landmarks_mediapipe hand_landmarks.launch.py publish_image_source:=config/person_body.jpg publish_image_format:=jpg publish_output_image_w:=640 publish_output_image_h:=480
+ros2 launch hand_landmarks_mediapipe hand_landmarks.launch.py publish_image_source:=config/example.jpg publish_image_format:=jpg publish_output_image_w:=640 publish_output_image_h:=480
 
 ```
 
