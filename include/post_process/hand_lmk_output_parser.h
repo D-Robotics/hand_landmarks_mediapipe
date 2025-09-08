@@ -26,11 +26,8 @@
 #include "dnn_node/util/output_parser/detection/fasterrcnn_output_parser.h"
 
 using hobot::dnn_node::parser_fasterrcnn::Landmarks;
+using hobot::dnn_node::DnnNodeOutput;
 
-namespace hobot
-{
-namespace dnn_node
-{
 namespace parser_hand_lmk
 {
 class HandLmkResult
@@ -67,7 +64,5 @@ struct HandNodeOutput : public DnnNodeOutput
   std::vector<HandLmkResult> lmk_result;
 };
 }  // namespace parser_hand_lmk
-}  // namespace dnn_node
-}  // namespace hobot
 
 #endif  // HAND_LANMARKS_OUTPUT_PARSER_H
