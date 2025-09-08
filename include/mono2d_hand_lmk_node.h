@@ -33,7 +33,8 @@
 #include "dnn_node/util/output_parser/detection/fasterrcnn_output_parser.h"
 #include "include/post_process/hand_lmk_output_parser.h"
 
-#include "post_process/hand_lmk_parser.h"
+#include "include/post_process/hand_lmk_parser.h"
+
 
 #ifndef MONO2D_HAND_LMK_NODE_H_
 #define MONO2D_HAND_LMK_NODE_H_
@@ -48,6 +49,7 @@ using hobot::dnn_node::NV12PyramidInput;
 
 using hobot::dnn_node::parser_fasterrcnn::FasterRcnnKpsParserPara;
 using hobot::dnn_node::parser_fasterrcnn::LandmarksResult;
+using parser_hand_lmk::HandNodeOutput;
 
 // 使用output manage解决异步多线程情况下模型输出乱序的问题
 class NodeOutputManage

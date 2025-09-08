@@ -23,13 +23,17 @@
 #include "rcutils/env.h"
 #include "opencv2/imgproc/types_c.h"
 #include "include/post_process/gesture.h"
+#include "include/mono2d_hand_lmk_node.h"
 #include "utils.h"
 
-int Deduplication(std::vector<HandLmkResult> lmk_result, std::vector<HandLmkResult>& filter_lmk_result)
+int Deduplication(std::vector<parser_hand_lmk::HandLmkResult> lmk_result,
+                  std::vector<parser_hand_lmk::HandLmkResult>& filter_lmk_result)
 {
   // sort from score high to low
   std::sort(lmk_result.begin(), lmk_result.end(),
-            [](const HandLmkResult& a, const HandLmkResult& b) { return a.scores > b.scores; });
+            [](const parser_hand_lmk::HandLmkResult& a, const parser_hand_lmk::HandLmkResult& b) {
+              return a.scores > b.scores;
+            });
   std::vector<bool> isDedup(lmk_result.size(), false);
   std::vector<cv::Rect> bbox_iou;
   for (auto& lmk : lmk_result)
@@ -390,7 +394,7 @@ int Mono2dHandLmkNode::PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs
   Landmarks lmk_result;
   std::vector<ai_msgs::msg::Point> hand_kps;
 
-  std::vector<HandLmkResult> filter_lmk_result;
+  std::vector<parser_hand_lmk::HandLmkResult> filter_lmk_result;
   Deduplication(hand_node_output->lmk_result, filter_lmk_result);
   track_hand_rects.clear();
 

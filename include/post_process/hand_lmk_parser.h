@@ -36,8 +36,6 @@
 #include "include/mono2d_hand_lmk_node.h"
 
 using hobot::dnn_node::DNNTensor;
-using hobot::dnn_node::parser_hand_lmk::HandNodeOutput;
-using hobot::dnn_node::parser_hand_lmk::HandLmkResult;
 using hobot::dnn_node::output_parser::Bbox;
 using hobot::dnn_node::output_parser::Detection;
 using hobot::dnn_node::output_parser::DnnParserResult;

@@ -45,23 +45,23 @@ int32_t HandLmkParse(const std::vector<std::shared_ptr<DNNTensor>>& output_tenso
     cv::Size img_size = cv::Size((*output_hand_res->valid_rois)[b].right - (*output_hand_res->valid_rois)[b].left,
                                  (*output_hand_res->valid_rois)[b].bottom - (*output_hand_res->valid_rois)[b].top);
 
-    auto* output0 = output_tensors[b * 4 + 0]->GetTensorData<float>();
-    auto* output1 = output_tensors[b * 4 + 1]->GetTensorData<float>();
-    auto* output2 = output_tensors[b * 4 + 2]->GetTensorData<float>();
+    auto* point_output0 = output_tensors[b * 4 + 0]->GetTensorData<float>();
+    auto* score_output1 = output_tensors[b * 4 + 1]->GetTensorData<float>();
+    auto* left_right_output2 = output_tensors[b * 4 + 2]->GetTensorData<float>();
     // auto* output3 = output_tensors[b * 4 + 3]->GetTensorData<float>();
     for (int i = 0; i < num_results; i += 3)
     {
       // calc landmarks
-      auto point_xy = Point(output0[i * stride + 0], output0[i * stride + 1]) / 224;
+      auto point_xy = Point(point_output0[i * stride + 0], point_output0[i * stride + 1]) / 224;
       point_xy = Point(point_xy.x * img_size.width, point_xy.y * img_size.height);  // scale to img size
       point_xy = point_xy + Point((*output_hand_res->valid_rois)[b].left,
                                   (*output_hand_res->valid_rois)[b].top);  // translate to roi
       lmk.emplace_back(point_xy);
     }
-    HandLmkResult res;
+    parser_hand_lmk::HandLmkResult res;
     res.lmks = lmk;
-    res.scores = output1[0];
-    res.left_right = output2[0];
+    res.scores = score_output1[0];
+    res.left_right = left_right_output2[0];
     output_hand_res->lmk_result.emplace_back(res);
   }
 
@@ -72,8 +72,8 @@ int NormalizeRoi(const hbDNNRoi* src, hbDNNRoi* dst, float norm_ratio, int32_t t
 {
   *dst = *src;
   // make sure dst left and top is not negative
-  dst->left = dst->left < 0 ? 0 : dst->left;
-  dst->top = dst->top < 0 ? 0 : dst->top;
+  dst->left = dst->left <= 0 ? 0 : dst->left;
+  dst->top = dst->top <= 0 ? 0 : dst->top;
   float box_w = dst->right - dst->left;
   float box_h = dst->bottom - dst->top;
   float center_x = (dst->left + dst->right) / 2.0f;
@@ -104,7 +104,7 @@ int NormalizeRoi(const hbDNNRoi* src, hbDNNRoi* dst, float norm_ratio, int32_t t
   uint32_t roi_h = dst->bottom - dst->top;
 
   if (roi_w <= roi_w_size_max_ && roi_w >= roi_w_size_min_ && roi_h <= roi_h_size_max_ && roi_h >= roi_h_size_min_ &&
-      dst->left > 0 && dst->right < total_w)
+      dst->left >= 0 && dst->right <= total_w && dst->top >= 0 && dst->bottom <= total_h)
   {
     // check success
     return 0;
