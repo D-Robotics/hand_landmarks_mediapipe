@@ -84,6 +84,7 @@ private:
   int dump_render_img_ = 0;
 
   float min_score_ = 0.4;
+  float nms_iou_thres_ = 0.4;
 
   std::string model_file_name_ = "config/hand_224_224.hbm"; // hand landmark model file name
   std::string model_name_ = ""; // empty means auto get model name in hbm file

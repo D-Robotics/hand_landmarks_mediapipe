@@ -17,24 +17,15 @@ float Distance(const Point& a, const Point& b)
 // calc IOU between two boxes
 double CalculateIOU(const cv::Rect& rect1, const cv::Rect& rect2)
 {
-  int x1 = std::max(rect1.x, rect2.x);
-  int y1 = std::max(rect1.y, rect2.y);
-  int x2 = std::min(rect1.x + rect1.width, rect2.x + rect2.width);
-  int y2 = std::min(rect1.y + rect1.height, rect2.y + rect2.height);
+  double intersection_area = (rect1 & rect2).area();
 
-  int w = std::max(0, x2 - x1);
-  int h = std::max(0, y2 - y1);
-  int intersection_area = w * h;
-
-  int area_rect1 = rect1.width * rect1.height;
-  int area_rect2 = rect2.width * rect2.height;
-  int union_area = area_rect1 + area_rect2 - intersection_area;
+  double union_area = rect1.area() + rect2.area() - intersection_area;
 
   if (union_area == 0)
   {
     return 0.0;
   }
-  return static_cast<double>(intersection_area) / union_area;
+  return intersection_area / union_area;
 }
 
 // move palm bbox to the direction of hand, for get hand detection
