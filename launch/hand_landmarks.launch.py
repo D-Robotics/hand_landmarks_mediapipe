@@ -179,6 +179,7 @@ def generate_launch_description():
             {"model_file_name": LaunchConfiguration('hand_model_file_name')},
             {"ai_msg_pub_topic_name": LaunchConfiguration('hand_lmk_pub_topic')},
             {"palm_topic_name": 'hobot_palm_detection'},
+            # {"nms_iou_thres": LaunchConfiguration('nms_iou_thres')},
         ],
         arguments=['--ros-args', '--log-level', 'warn']
     )

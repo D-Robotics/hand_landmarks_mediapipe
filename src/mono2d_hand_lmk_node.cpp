@@ -29,7 +29,7 @@
 int Deduplication(std::vector<parser_hand_lmk::HandLmkResult> lmk_result,
                   std::vector<parser_hand_lmk::HandLmkResult>& filter_lmk_result)
 {
-  // sort from score high to low
+  // sort by score from high to low
   std::sort(lmk_result.begin(), lmk_result.end(),
             [](const parser_hand_lmk::HandLmkResult& a, const parser_hand_lmk::HandLmkResult& b) {
               return a.scores > b.scores;
@@ -68,7 +68,14 @@ int Deduplication(std::vector<parser_hand_lmk::HandLmkResult> lmk_result,
         if (dequ_num >= 10)
         {
           isDedup[j] = true;
+          continue;
         }
+      }
+      // filter contained bbox
+      if ((bbox_iou[i] & bbox_iou[j]).area() > 0.7 * bbox_iou[j].area())
+      {
+        isDedup[j] = true;
+        continue;
       }
     }
   }
@@ -213,6 +220,7 @@ Mono2dHandLmkNode::Mono2dHandLmkNode(const NodeOptions& options) : DnnNode("mono
   this->declare_parameter<std::string>("palm_topic_name", palm_topic_name_);
   this->declare_parameter<std::string>("image_file", image_file_);
   this->declare_parameter<float>("min_score", min_score_);
+  this->declare_parameter<float>("nms_iou_thres", nms_iou_thres_);
 
   this->get_parameter<int>("is_sync_mode", is_sync_mode_);
   this->get_parameter<std::string>("model_file_name", model_file_name_);
@@ -225,13 +233,14 @@ Mono2dHandLmkNode::Mono2dHandLmkNode(const NodeOptions& options) : DnnNode("mono
   this->get_parameter<std::string>("palm_topic_name", palm_topic_name_);
   this->get_parameter<std::string>("image_file", image_file_);
   this->get_parameter<float>("min_score", min_score_);
+  this->get_parameter<float>("nms_iou_thres", nms_iou_thres_);
   {
     std::stringstream ss;
     ss << "Parameter:"
        << "\n is_sync_mode_: " << is_sync_mode_ << "\n model_file_name_: " << model_file_name_
        << "\n is_shared_mem_sub: " << is_shared_mem_sub_ << "\n ai_msg_pub_topic_name: " << ai_msg_pub_topic_name_
        << "\n ros_img_topic_name: " << ros_img_topic_name_ << "\n image_gap: " << image_gap_
-       << "\n dump_render_img: " << dump_render_img_;
+       << "\n dump_render_img: " << dump_render_img_  << "\n nms_iou_thres: " << nms_iou_thres_;
     RCLCPP_WARN(rclcpp::get_logger("mono2d_hand_lmk"), "%s", ss.str().c_str());
   }
 
@@ -251,7 +260,6 @@ Mono2dHandLmkNode::Mono2dHandLmkNode(const NodeOptions& options) : DnnNode("mono
     return;
   }
 
-  // 未指定模型名，从加载的模型中查询出模型名
   if (model_name_.empty())
   {
     if (!GetModel())
@@ -389,10 +397,6 @@ int Mono2dHandLmkNode::PostProcess(const std::shared_ptr<DnnNodeOutput>& outputs
   {
     pub_data->set__fps(round(outputs->rt_stat->output_fps));
   }
-
-  // key is model outputs index
-  Landmarks lmk_result;
-  std::vector<ai_msgs::msg::Point> hand_kps;
 
   std::vector<parser_hand_lmk::HandLmkResult> filter_lmk_result;
   Deduplication(hand_node_output->lmk_result, filter_lmk_result);
@@ -805,7 +809,20 @@ void Mono2dHandLmkNode::SharedMemImgProcess(const hbm_img_msgs::msg::HbmMsg1080P
   {
     palms.emplace_back(rect);
   }
-  uint result_size = palms.size();
+
+  // NMS for palm boxes from track and detect
+  std::vector<cv::Rect> filtered_palms;
+  {
+    std::vector<int> indices;
+    std::vector<float> dummy_scores(palms.size(), 1.0); // ignore score, set all to 1.0
+    cv::dnn::NMSBoxes(palms, dummy_scores, 0, nms_iou_thres_, indices, 1.f, 0);
+    for (int i : indices)
+    {
+      filtered_palms.emplace_back(palms[i]);
+    }
+  }
+  
+  uint result_size = filtered_palms.size();
   // if no palm is detected, put whole image as input. roi is all image
   if (result_size == 0)
   {
@@ -828,7 +845,7 @@ void Mono2dHandLmkNode::SharedMemImgProcess(const hbm_img_msgs::msg::HbmMsg1080P
   for (uint i = 0; i < result_size; i++)
   {
     auto roi_dst = std::make_shared<hbDNNRoi>();
-    auto palm = palms[i];
+    auto palm = filtered_palms[i];
     auto roi = hbDNNRoi(palm.x, palm.y, palm.x + palm.width, palm.y + palm.height);
 
     auto ret = NormalizeRoi(&roi, roi_dst.get(), 1.0, img_msg->width, img_msg->height);  // process roi and check valid
@@ -853,7 +870,15 @@ void Mono2dHandLmkNode::SharedMemImgProcess(const hbm_img_msgs::msg::HbmMsg1080P
     RCLCPP_ERROR(rclcpp::get_logger("mono2d_hand_lmk"), "Get Nv12 pym fail!");
     return;
   }
-  // SaveNV12FromPyramid(*pyramid, "/root/img.nv12");
+
+  // if you want to save nv12 image, please uncomment below line
+  // save all nv12 image may take much time, and extremely affect performance
+  // {
+  //   std::stringstream ss;
+  //   ss << std::setw(4) << std::setfill('0') << img_msg->index;
+  //   std::string save_path = "/mnt/disk1/deyu.li/workspace/video/" + ss.str() + ".nv12";
+  //   SaveNV12FromPyramid(*pyramid, save_path);
+  // }
 
   {
     auto tp_now = std::chrono::system_clock::now();
