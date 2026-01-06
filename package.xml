@@ -2,9 +2,9 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>hand_landmarks_mediapipe</name>
-  <version>1.0.1</version>
+  <version>1.1.0</version>
   <description>TogetheROS mono2d hand landmarks</description>
-  <maintainer email="kao.zhu@d-robotics.cc">zhukao</maintainer>
+  <maintainer email="zixi01.chen@d-robotics.cc">zixi01.chen</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
