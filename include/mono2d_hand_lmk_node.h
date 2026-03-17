@@ -90,7 +90,11 @@ private:
   float min_score_ = 0.4;
   float nms_iou_thres_ = 0.4;
 
-  std::string model_file_name_ = "config/hand_224_224.hbm"; // hand landmark model file name
+#ifdef PLATFORM_X5
+  std::string model_file_name_ = "config/hand_224_224.bin"; // hand landmark model file name
+#else
+  std::string model_file_name_ = "config/hand_224_224.hbm";
+#endif
   std::string model_name_ = ""; // empty means auto get model name in hbm file
   std::string palm_topic_name_ = "/hobot_palm_detection";
   std::vector<cv::Rect> palm_targets; // for save palm detection results, after extended to hand

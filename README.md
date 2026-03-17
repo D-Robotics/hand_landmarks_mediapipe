@@ -12,19 +12,23 @@ The example subscribes to image data (`image msg`), publishes customized percept
 
 | Model Type           | Supported Platform |
 | :------------------- | ------------------ |
+| mediapipe            | RDK X5           |
 | mediapipe            | RDK S100           |
+| mediapipe            | RDK S600           |
 
 # Bill of Materials
 
 | Item Name            | Manufacturer | Reference Link                                                                 |
 | :------------------- | ------------ | ------------------------------------------------------------------------------ |
-| RDK S100             | Multiple     | [RDK S100](https://developer.horizon.cc/rdks100)                               |
-| Camera               | Multiple     | [MIPI Camera](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB Camera](https://developer.horizon.cc/nodehubdetail/168958376283445777) |
+| RDK X5             | Multiple     | [RDK X5](https://developer.d-robotics.cc/rdkx5)                               |
+| RDK S100             | Multiple     | [RDK S100](https://developer.d-robotics.cc/rdks100)                               |
+| RDK S600             | Multiple     | [RDK S600](https://developer.d-robotics.cc/rdks600)                               |
+| Camera               | Multiple     | [MIPI Camera](https://developer.d-robotics.cc/nodehubdetail/168958376283445781)<br>[USB Camera](https://developer.d-robotics.cc/nodehubdetail/168958376283445777) |
 
 # Preparation
 
-- RDK has been flashed with Ubuntu 22.04 system image  
-- The camera is properly connected to the RDK S100
+- RDK has been flashed with Ubuntu 22.04 / Ubuntu 24.04 system image  
+- The camera is properly connected to the RDK.
 
 # Usage
 
@@ -33,8 +37,10 @@ The example subscribes to image data (`image msg`), publishes customized percept
 After starting the robot, connect to it via SSH terminal or VNC, click the "One-click Deploy" button in the upper right corner of this page, then copy the following command to run on the RDK system to complete the installation of the relevant Node.
 
 ```bash
+# If You use Ubuntu24.04, use jazzy as 'export TROS_DISTRO=jazzy'
+export TROS_DISTRO=humble
 sudo apt update
-sudo apt install -y tros-humble-hand_landmarks_mediapipe
+sudo apt install -y tros-${TROS_DISTRO}-hand_landmarks_mediapipe
 ```
 
 **2.Run mediapipe hand landmark detection**
@@ -42,8 +48,9 @@ sudo apt install -y tros-humble-hand_landmarks_mediapipe
 **Using MIPI Camera to publish images**
 
 ```shell
-# Configure tros.b humble environment
-source /opt/tros/humble/setup.bash
+# Configure tros.b environment
+export TROS_DISTRO=humble
+source /opt/tros/${TROS_DISTRO}/setup.bash
 
 # Copy the configuration files required to run the example from the tros.b installation path.
 cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
@@ -60,8 +67,9 @@ ros2 launch hand_landmarks_mediapipe hand_landmarks.launch.py
 **Using USB Camera to publish images**
 
 ```shell
-# Configure tros.b humble environment
-source /opt/tros/humble/setup.bash
+# Configure tros.b environment
+export TROS_DISTRO=humble
+source /opt/tros/${TROS_DISTRO}/setup.bash
 
 # Copy the configuration files required to run the example from the tros.b installation path.
 cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
@@ -76,9 +84,10 @@ ros2 launch hand_landmarks_mediapipe hand_landmarks.launch.py
 
 **Using local playback images**
 
-Only supported on tros humble version.
-
 ```shell
+export TROS_DISTRO=humble
+source /opt/tros/${TROS_DISTRO}/setup.bash
+
 # Copy the configuration files required to run the example from the tros.b installation path.
 cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
 cp -r /opt/tros/${TROS_DISTRO}/lib/hand_landmarks_mediapipe/config/ .
