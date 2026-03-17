@@ -11,20 +11,24 @@ hand_landmarks_mediapipe package是使用hobot_dnn package开发的单目rgb手�
 
 | 模型类型            | 支持平台 |
 | :------------------ | -------- |
+| mediapipe           | RDK X5 |
 | mediapipe           | RDK S100 |
+| mediapipe           | RDK S600 |
 
 # 物料清单
 
 | 物料名称            | 生产厂家 | 参考链接                                                     |
 | :------------------ | -------- | ------------------------------------------------------------ |
-| RDK S100 | 多厂家 | [RDK S100](https://developer.horizon.cc/rdks100) |
-| camera              | 多厂家 | [MIPI相机](https://developer.horizon.cc/nodehubdetail/168958376283445781)<br>[USB相机](https://developer.horizon.cc/nodehubdetail/168958376283445777)|
+| RDK X5 | 多厂家 | [RDK X5](https://developer.d-robotics.cc/rdksx5) |
+| RDK S100 | 多厂家 | [RDK S100](https://developer.d-robotics.cc/rdks100) |
+| RDK S600 | 多厂家 | [RDK S600](https://developer.d-robotics.cc/rdks600) |
+| camera              | 多厂家 | [MIPI相机](https://developer.d-robotics.cc/nodehubdetail/168958376283445781)<br>[USB相机](https://developer.d-robotics.cc/nodehubdetail/168958376283445777)|
 
 
 # 准备工作
 
-- RDK已烧录好Ubuntu 22.04系统镜像
-- 摄像头正确连接到RDK S100
+- RDK已烧录好Ubuntu 22.04 / Ubuntu 24.04 系统镜像
+- 摄像头正确连接到RDK
 
 # 使用方法
 
@@ -33,8 +37,10 @@ hand_landmarks_mediapipe package是使用hobot_dnn package开发的单目rgb手�
 启动机器人后，通过SSH终端或者VNC连接机器人，点击本页面右上方的“一键部署”按钮，复制如下命令在RDK的系统上运行，完成相关Node的安装。
 
 ```bash
+# 如果是Jazzy版本, 设置 export TROS_DISTRO=jazzy
+export TROS_DISTRO=humble
 sudo apt update
-sudo apt install -y tros-humble-hand_landmarks_mediapipe
+sudo apt install -y tros-${TROS_DISTRO}-hand_landmarks_mediapipe
 ```
 
 **2.运行 mediapipe 手部关键点检测功能**
@@ -42,8 +48,9 @@ sudo apt install -y tros-humble-hand_landmarks_mediapipe
 **使用MIPI摄像头发布图片**
 
 ```shell
+export TROS_DISTRO=humble
 # 配置tros.b humble环境
-source /opt/tros/humble/setup.bash
+source /opt/tros/${TROS_DISTRO}/setup.bash
 
 # 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
 cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
@@ -60,8 +67,9 @@ ros2 launch hand_landmarks_mediapipe hand_landmarks.launch.py
 **使用USB摄像头发布图片**
 
 ```shell
-# 配置tros.b humble环境
-source /opt/tros/humble/setup.bash
+export TROS_DISTRO=humble
+# 配置tros.b 环境
+source /opt/tros/${TROS_DISTRO}/setup.bash
 
 # 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
 cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
@@ -76,9 +84,11 @@ ros2 launch hand_landmarks_mediapipe hand_landmarks.launch.py
 
 **使用本地回灌图片**
 
-仅支持 `tros humble` 版本。
-
 ```shell
+export TROS_DISTRO=humble
+# 配置tros.b 环境
+source /opt/tros/${TROS_DISTRO}/setup.bash
+
 # 从tros.b的安装路径中拷贝出运行示例需要的配置文件。
 cp -r /opt/tros/${TROS_DISTRO}/lib/palm_detection_mediapipe/config/ .
 cp -r /opt/tros/${TROS_DISTRO}/lib/hand_landmarks_mediapipe/config/ .

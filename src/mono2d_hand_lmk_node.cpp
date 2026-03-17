@@ -625,7 +625,11 @@ void Mono2dHandLmkNode::RosImgProcess(const sensor_msgs::msg::Image::ConstShared
   if (result_size == 0)
   {
     auto roi_dst = std::make_shared<hbDNNRoi>();
-    auto roi = hbDNNRoi(0, 0, img_msg->width, img_msg->height);
+    auto roi = hbDNNRoi();
+    roi.left = 0;
+    roi.top = 0;
+    roi.right = img_msg->width;
+    roi.bottom = img_msg->height;
 
     auto ret = NormalizeRoi(&roi, roi_dst.get(), 1.0, img_msg->width, img_msg->height);  // process roi and check valid
     RCLCPP_DEBUG(rclcpp::get_logger("mono2d_hand_lmk"), "ROI Range: x1:%d  y1:%d  x2:%d  y2:%d  ret:%d", roi_dst->left,
@@ -644,7 +648,11 @@ void Mono2dHandLmkNode::RosImgProcess(const sensor_msgs::msg::Image::ConstShared
   {
     auto roi_dst = std::make_shared<hbDNNRoi>();
     auto palm = palms[i];
-    auto roi = hbDNNRoi(palm.x, palm.y, palm.x + palm.width, palm.y + palm.height);
+    auto roi = hbDNNRoi();
+    roi.left = palm.x;
+    roi.top = palm.y;
+    roi.right = palm.x + palm.width;
+    roi.bottom = palm.y + palm.height;
 
     auto ret = NormalizeRoi(&roi, roi_dst.get(), 1.0, img_msg->width, img_msg->height);  // process roi and check valid
     RCLCPP_INFO(rclcpp::get_logger("mono2d_hand_lmk"), "ROI Range: x1:%d  y1:%d  x2:%d  y2:%d  ret:%d", roi_dst->left,
@@ -826,7 +834,11 @@ void Mono2dHandLmkNode::SharedMemImgProcess(const hbm_img_msgs::msg::HbmMsg1080P
   if (result_size == 0)
   {
     auto roi_dst = std::make_shared<hbDNNRoi>();
-    auto roi = hbDNNRoi(0, 0, img_msg->width, img_msg->height);
+    auto roi = hbDNNRoi();
+    roi.left = 0;
+    roi.top = 0;
+    roi.right = img_msg->width;
+    roi.bottom = img_msg->height;
 
     auto ret = NormalizeRoi(&roi, roi_dst.get(), 1.0, img_msg->width, img_msg->height);  // process roi and check valid
     RCLCPP_DEBUG(rclcpp::get_logger("mono2d_hand_lmk"), "ROI Range: x1:%d  y1:%d  x2:%d  y2:%d  ret:%d", roi_dst->left,
@@ -845,7 +857,11 @@ void Mono2dHandLmkNode::SharedMemImgProcess(const hbm_img_msgs::msg::HbmMsg1080P
   {
     auto roi_dst = std::make_shared<hbDNNRoi>();
     auto palm = filtered_palms[i];
-    auto roi = hbDNNRoi(palm.x, palm.y, palm.x + palm.width, palm.y + palm.height);
+    auto roi = hbDNNRoi();
+    roi.left = palm.x;
+    roi.top = palm.y;
+    roi.right = palm.x + palm.width;
+    roi.bottom = palm.y + palm.height;
 
     auto ret = NormalizeRoi(&roi, roi_dst.get(), 1.0, img_msg->width, img_msg->height);  // process roi and check valid
     RCLCPP_INFO(rclcpp::get_logger("mono2d_hand_lmk"), "ROI Range: x1:%d  y1:%d  x2:%d  y2:%d  ret:%d", roi_dst->left,

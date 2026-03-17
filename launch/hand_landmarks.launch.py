@@ -32,12 +32,6 @@ def generate_launch_description():
     image_height_launch_arg = DeclareLaunchArgument(
         "hand_lmk_height", default_value=TextSubstitution(text="480")
     )
-    hand_model_file_name_launch_arg = DeclareLaunchArgument(
-        "hand_model_file_name", default_value=TextSubstitution(text="config/hand_224_224.hbm")
-    )
-    palm_model_file_name_launch_arg = DeclareLaunchArgument(
-        "palm_model_file_name", default_value=TextSubstitution(text="config/palm_det_192_192.hbm")
-    )
     camera_type = os.getenv('CAM_TYPE')
     print("camera_type is ", camera_type)
 
@@ -154,14 +148,16 @@ def generate_launch_description():
         'palm_det_pub_topic',
         default_value='/hobot_palm_detection',
         description='palm detction ai message publish topic')
+    score_type_launch_arg = DeclareLaunchArgument(
+        "palm_min_score", default_value=TextSubstitution(text="0.6")
+    )
     mono2d_palm_det_node = Node(
         package='palm_detection_mediapipe',
         executable='palm_detection_mediapipe',
         output='screen',
         parameters=[
-            {"model_file_name": LaunchConfiguration('palm_model_file_name')},
             {"ai_msg_pub_topic_name": LaunchConfiguration('palm_det_pub_topic')},
-            {"min_score": 0.4}
+            {"min_score": LaunchConfiguration('palm_min_score')}
         ],
         arguments=['--ros-args', '--log-level', 'warn']
     )
@@ -176,10 +172,8 @@ def generate_launch_description():
         executable='hand_landmarks_mediapipe',
         output='screen',
         parameters=[
-            {"model_file_name": LaunchConfiguration('hand_model_file_name')},
             {"ai_msg_pub_topic_name": LaunchConfiguration('hand_lmk_pub_topic')},
             {"palm_topic_name": 'hobot_palm_detection'},
-            # {"nms_iou_thres": LaunchConfiguration('nms_iou_thres')},
         ],
         arguments=['--ros-args', '--log-level', 'warn']
     )
@@ -195,8 +189,6 @@ def generate_launch_description():
         return LaunchDescription([
             image_width_launch_arg,
             image_height_launch_arg,
-            hand_model_file_name_launch_arg,
-            palm_model_file_name_launch_arg,
             camera_device_arg,
             # 启动零拷贝环境配置node
             shared_mem_node,
@@ -207,9 +199,10 @@ def generate_launch_description():
             # hand landmarks
             hand_lmk_pub_topic_arg,
             mono2d_hand_lmk_node,
+            # palm det node
             palm_det_pub_topic_arg,
+            score_type_launch_arg,
             mono2d_palm_det_node,
-            
             # web display
             web_smart_topic_arg,
             web_node
@@ -218,8 +211,6 @@ def generate_launch_description():
         return LaunchDescription([
             image_width_launch_arg,
             image_height_launch_arg,
-            hand_model_file_name_launch_arg,
-            palm_model_file_name_launch_arg,
             # 启动零拷贝环境配置node
             shared_mem_node,
             # image publish
@@ -229,9 +220,10 @@ def generate_launch_description():
             # hand landmarks
             hand_lmk_pub_topic_arg,
             mono2d_hand_lmk_node,
+            # palm det node
             palm_det_pub_topic_arg,
+            score_type_launch_arg,
             mono2d_palm_det_node,
-
             # web display
             web_smart_topic_arg,
             web_node
