@@ -1,5 +1,9 @@
 # Changelog for package hand_landmarks_mediapipe
 
+tros_1.2.1 (2026-03-19)
+------------------
+1. 修正 RDK X5 平台 Resizer 模型。
+
 tros_1.2.0 (2026-03-17)
 ------------------
 1. 适配 RDK X5 平台。
